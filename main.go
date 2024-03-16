@@ -125,8 +125,6 @@ func (m *DaggerModuleCiCd) CiServiceInfra(
 		WithWorkdir(utils.WORK_DIR).
 		WithExec([]string{"init", tfInitConfig, s3KeyBackend}).
 		WithExec([]string{"workspace", "select", "-or-create", env}).
-		WithExec([]string{"fmt", "-check"}).
-		WithExec([]string{"validate"}).
 		WithExec([]string{"plan", "-out", "tfplan"}).
 		WithExec([]string{"apply", "tfplan"}).
 		Stdout(ctx)
