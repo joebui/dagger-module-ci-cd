@@ -15,3 +15,7 @@ func TfBucketConfig(bucketName string) string {
 func TfVarFileConfig(tenant string) string {
 	return fmt.Sprintf("-var-file=%s.tfvars", tenant)
 }
+
+func GetNodejsImage(version string) string {
+	return fmt.Sprintf("node:%s-alpine", version)
+}

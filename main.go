@@ -1,23 +1,10 @@
-// A generated module for DaggerModuleCiCd functions
-//
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
-
 package main
 
 import (
 	"context"
 	"dagger/dagger-module-ci-cd/internal/dagger"
 	"dagger/dagger-module-ci-cd/utils"
+	"fmt"
 )
 
 type DaggerModuleCiCd struct{}
@@ -47,7 +34,7 @@ func terraformBase(
 }
 
 // Run terraform apply to deploy and manage AWS resources.
-func (m *DaggerModuleCiCd) TerraformDeploy(
+func (m *DaggerModuleCiCd) CdTerraformDeploy(
 	ctx context.Context,
 	s3BucketName string,
 	appName string,
@@ -71,7 +58,7 @@ func (m *DaggerModuleCiCd) TerraformDeploy(
 }
 
 // Run terraform destroy to clean service's AWS resources.
-func (m *DaggerModuleCiCd) TerraformDestroy(
+func (m *DaggerModuleCiCd) CdTerraformDestroy(
 	ctx context.Context,
 	s3BucketName string,
 	appName string,
@@ -92,4 +79,48 @@ func (m *DaggerModuleCiCd) TerraformDestroy(
 		WithExec([]string{"plan", "-destroy", tfPlanConfig, "-out", "tfplan"}).
 		WithExec([]string{"apply", "tfplan"}).
 		Stdout(ctx)
+}
+
+func CiNodejsBuild(
+	ctx context.Context,
+	githubToken string,
+	// +optional
+	// +default="18"
+	nodeVersion string,
+) (string, error) {
+	src := dag.Directory().Directory(".")
+	nodejsImage := utils.GetNodejsImage(nodeVersion)
+
+	return dag.
+		Container().
+		WithEnvVariable("GITHUB_TOKEN", githubToken).
+		From(nodejsImage).
+		WithMountedDirectory(utils.WORK_DIR, src).
+		WithWorkdir(utils.WORK_DIR).
+		WithExec([]string{"apk", "update"}).
+		WithExec([]string{"apk", "add", "--no-cache", "bash"}).
+		WithExec([]string{"yarn", "install", "--frozen-lockfile"}).
+		WithExec([]string{"yarn", "build"}).
+		Stdout(ctx)
+}
+
+func CiNodejsPublishImage(
+	ctx context.Context,
+	githubToken string,
+	ecrImgName string,
+	gitCommitId string,
+) (string, error) {
+	imgPath := fmt.Sprintf("%s:default-%s", ecrImgName, gitCommitId)
+	buildOps := dagger.DirectoryDockerBuildOpts{
+		Dockerfile: "./Dockerfile.prod",
+		BuildArgs: []dagger.BuildArg{
+			{Name: "GITHUB_TOKEN", Value: githubToken},
+		},
+	}
+
+	return dag.
+		Directory().
+		Directory(".").
+		DockerBuild(buildOps).
+		Publish(ctx, imgPath)
 }

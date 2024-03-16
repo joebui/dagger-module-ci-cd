@@ -1,0 +1,26 @@
+name: release
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Get version from version.json
+        id: get_version
+        run: |
+          version=$(cat version.json | jq -r .version)
+          echo "REPO_VERSION=$version" >> $GITHUB_ENV
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.REPO_VERSION }}
+          release_name: ${{ env.REPO_VERSION }}
