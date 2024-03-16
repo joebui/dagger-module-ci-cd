@@ -5,7 +5,6 @@ import (
 	"dagger/dagger-module-ci-cd/internal/dagger"
 	"dagger/dagger-module-ci-cd/utils"
 	"fmt"
-	"path/filepath"
 )
 
 type DaggerModuleCiCd struct{}
@@ -134,9 +133,8 @@ func (m *DaggerModuleCiCd) CiServiceInfra(
 	bucketName string,
 	appName string,
 	env string,
+	src *dagger.Directory,
 ) (string, error) {
-	src := dag.CurrentModule().Source().Directory(".")
-	tfWorkDir := filepath.Join(utils.MNT_PREFIX, "terraform-svc-shared-infra")
 	s3KeyBackend := fmt.Sprintf("-backend-config=key=services/shared/%s", appName)
 	tfInitConfig := fmt.Sprintf("-backend-config=bucket=%s", bucketName)
 
@@ -145,7 +143,7 @@ func (m *DaggerModuleCiCd) CiServiceInfra(
 		WithEnvVariable("TF_VAR_service_name", appName).
 		From(utils.TF_IMG).
 		WithMountedDirectory(utils.MNT_PREFIX, src).
-		WithWorkdir(tfWorkDir).
+		WithWorkdir(utils.MNT_PREFIX).
 		WithExec([]string{"init", tfInitConfig, s3KeyBackend}).
 		WithExec([]string{"workspace", "select", "-or-create", env}).
 		WithExec([]string{"fmt", "-check"}).
