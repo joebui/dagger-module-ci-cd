@@ -81,7 +81,8 @@ func (m *DaggerModuleCiCd) CdTerraformDestroy(
 		Stdout(ctx)
 }
 
-func CiNodejsBuild(
+// Build nodejs service.
+func (m *DaggerModuleCiCd) CiNodejsBuild(
 	ctx context.Context,
 	githubToken string,
 	// +optional
@@ -104,7 +105,8 @@ func CiNodejsBuild(
 		Stdout(ctx)
 }
 
-func CiNodejsPublishImage(
+// Publish image to artifactory.
+func (m *DaggerModuleCiCd) CiNodejsPublishImage(
 	ctx context.Context,
 	githubToken string,
 	ecrImgName string,
