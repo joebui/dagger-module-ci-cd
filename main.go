@@ -89,9 +89,8 @@ func (m *DaggerModuleCiCd) CiNodejsBuild(
 	// +default="18"
 	nodeVersion string,
 	src *dagger.Directory,
-) (bool, error) {
+) *dagger.Directory {
 	nodejsImage := utils.GetNodejsImage(nodeVersion)
-	dist := fmt.Sprintf("%s/dist", utils.WORK_DIR)
 
 	return dag.
 		Container().
@@ -103,8 +102,7 @@ func (m *DaggerModuleCiCd) CiNodejsBuild(
 		WithExec([]string{"apk", "add", "--no-cache", "bash"}).
 		WithExec([]string{"yarn", "install", "--frozen-lockfile"}).
 		WithExec([]string{"yarn", "build"}).
-		Directory(dist).
-		Export(ctx, ".")
+		Directory("./dist")
 }
 
 // Deploy shared service infra.
