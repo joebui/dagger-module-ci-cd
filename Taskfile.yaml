@@ -1,0 +1,8 @@
+version: 3
+
+tasks:
+  tidy:
+    cmd: go mod tidy
+
+  call:
+    cmd: dagger call -h
