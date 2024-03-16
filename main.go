@@ -134,7 +134,7 @@ func (m *DaggerModuleCiCd) CiServiceInfra(
 	appName string,
 	env string,
 ) (string, error) {
-	src := dag.Directory().Directory("./terraform-svc-shared-infra")
+	src := dag.CurrentModule().Source().Directory("./terraform-svc-shared-infra")
 	s3KeyBackend := fmt.Sprintf("-backend-config=key=services/shared/%s", appName)
 	tfInitConfig := fmt.Sprintf("-backend-config=bucket=%s", bucketName)
 
