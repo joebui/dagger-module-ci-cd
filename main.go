@@ -40,12 +40,10 @@ func (m *DaggerModuleCiCd) CdTerraformDeploy(
 	appName string,
 	buildVersion string,
 	tenant string,
+	src *dagger.Directory,
 	// +optional
 	// +default="us-west-2"
 	awsRegion string,
-	// +optional
-	// +default="./deploy"
-	src *dagger.Directory,
 ) (string, error) {
 	sshHostDir := dag.Directory().Directory("/home/ec2-user/.ssh")
 	tfInitConfig := utils.TfBucketConfig(s3BucketName)
@@ -66,12 +64,10 @@ func (m *DaggerModuleCiCd) CdTerraformDestroy(
 	appName string,
 	buildVersion string,
 	tenant string,
+	src *dagger.Directory,
 	// +optional
 	// +default="us-west-2"
 	awsRegion string,
-	// +optional
-	// +default="./deploy"
-	src *dagger.Directory,
 ) (string, error) {
 	sshHostDir := dag.Directory().Directory("/home/ec2-user/.ssh")
 	tfInitConfig := utils.TfBucketConfig(s3BucketName)
@@ -92,8 +88,6 @@ func (m *DaggerModuleCiCd) CiNodejsBuild(
 	// +optional
 	// +default="18"
 	nodeVersion string,
-	// +optional
-	// +default="."
 	src *dagger.Directory,
 ) (string, error) {
 	nodejsImage := utils.GetNodejsImage(nodeVersion)
@@ -139,8 +133,6 @@ func (m *DaggerModuleCiCd) CiServiceInfra(
 	bucketName string,
 	appName string,
 	env string,
-	// +optional
-	// +default="./terraform-svc-shared-infra"
 	src *dagger.Directory,
 ) (string, error) {
 	s3KeyBackend := fmt.Sprintf("-backend-config=key=services/shared/%s", appName)
