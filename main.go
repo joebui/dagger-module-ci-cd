@@ -134,7 +134,7 @@ func (m *DaggerModuleCiCd) CiServiceInfra(
 	appName string,
 	env string,
 ) (string, error) {
-	src := dag.CurrentModule().Source().Directory("./terraform-svc-shared-infra")
+	src := dag.CacheVolume("terraform-svc-shared-infra")
 	s3KeyBackend := fmt.Sprintf("-backend-config=key=services/shared/%s", appName)
 	tfInitConfig := fmt.Sprintf("-backend-config=bucket=%s", bucketName)
 
@@ -142,7 +142,7 @@ func (m *DaggerModuleCiCd) CiServiceInfra(
 		Container().
 		WithEnvVariable("TF_VAR_service_name", appName).
 		From(utils.TF_IMG).
-		WithMountedDirectory(utils.WORK_DIR, src).
+		WithMountedCache(utils.WORK_DIR, src).
 		WithWorkdir(utils.WORK_DIR).
 		WithExec([]string{"init", tfInitConfig, s3KeyBackend}).
 		WithExec([]string{"workspace", "select", "-or-create", env}).
