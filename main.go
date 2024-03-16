@@ -89,7 +89,7 @@ func (m *DaggerModuleCiCd) CiNodejsBuild(
 	// +default="18"
 	nodeVersion string,
 	src *dagger.Directory,
-) (string, error) {
+) (bool, error) {
 	nodejsImage := utils.GetNodejsImage(nodeVersion)
 
 	return dag.
@@ -102,29 +102,8 @@ func (m *DaggerModuleCiCd) CiNodejsBuild(
 		WithExec([]string{"apk", "add", "--no-cache", "bash"}).
 		WithExec([]string{"yarn", "install", "--frozen-lockfile"}).
 		WithExec([]string{"yarn", "build"}).
-		Stdout(ctx)
-}
-
-// Publish image to artifactory.
-func (m *DaggerModuleCiCd) CiNodejsPublishImage(
-	ctx context.Context,
-	githubToken string,
-	ecrImgName string,
-	gitCommitId string,
-) (string, error) {
-	imgPath := fmt.Sprintf("%s:default-%s", ecrImgName, gitCommitId)
-	buildOps := dagger.DirectoryDockerBuildOpts{
-		Dockerfile: "./Dockerfile.prod",
-		BuildArgs: []dagger.BuildArg{
-			{Name: "GITHUB_TOKEN", Value: githubToken},
-		},
-	}
-
-	return dag.
-		Directory().
-		Directory(".").
-		DockerBuild(buildOps).
-		Publish(ctx, imgPath)
+		Directory("./dist").
+		Export(ctx, "./dist")
 }
 
 // Deploy shared service infra.
