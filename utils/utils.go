@@ -3,8 +3,7 @@ package utils
 import "fmt"
 
 const (
-	MNT_PREFIX        = "/mnt"
-	WORK_DIR          = "/src"
+	WORK_DIR          = "/mnt"
 	TF_IMG            = "hashicorp/terraform:1.5"
 	CONTAINER_SSH_DIR = "/root/.ssh"
 )

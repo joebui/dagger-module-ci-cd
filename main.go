@@ -43,14 +43,16 @@ func (m *DaggerModuleCiCd) CdTerraformDeploy(
 	// +optional
 	// +default="us-west-2"
 	awsRegion string,
+	// +optional
+	// +default="./deploy"
+	src *dagger.Directory,
 ) (string, error) {
-	deployHostDir := dag.Directory().Directory("deploy")
 	sshHostDir := dag.Directory().Directory("/home/ec2-user/.ssh")
 	tfInitConfig := utils.TfBucketConfig(s3BucketName)
 	tfPlanConfig := utils.TfVarFileConfig(tenant)
 
 	return terraformBase(
-		sshHostDir, deployHostDir, awsRegion, buildVersion, appName, tfInitConfig, tenant,
+		sshHostDir, src, awsRegion, buildVersion, appName, tfInitConfig, tenant,
 	).
 		WithExec([]string{"plan", tfPlanConfig, "-out", "tfplan"}).
 		WithExec([]string{"apply", "tfplan"}).
@@ -67,14 +69,16 @@ func (m *DaggerModuleCiCd) CdTerraformDestroy(
 	// +optional
 	// +default="us-west-2"
 	awsRegion string,
+	// +optional
+	// +default="./deploy"
+	src *dagger.Directory,
 ) (string, error) {
-	deployHostDir := dag.Directory().Directory("deploy")
 	sshHostDir := dag.Directory().Directory("/home/ec2-user/.ssh")
 	tfInitConfig := utils.TfBucketConfig(s3BucketName)
 	tfPlanConfig := utils.TfVarFileConfig(tenant)
 
 	return terraformBase(
-		sshHostDir, deployHostDir, awsRegion, buildVersion, appName, tfInitConfig, tenant,
+		sshHostDir, src, awsRegion, buildVersion, appName, tfInitConfig, tenant,
 	).
 		WithExec([]string{"plan", "-destroy", tfPlanConfig, "-out", "tfplan"}).
 		WithExec([]string{"apply", "tfplan"}).
@@ -88,8 +92,10 @@ func (m *DaggerModuleCiCd) CiNodejsBuild(
 	// +optional
 	// +default="18"
 	nodeVersion string,
+	// +optional
+	// +default="."
+	src *dagger.Directory,
 ) (string, error) {
-	src := dag.Directory().Directory(".")
 	nodejsImage := utils.GetNodejsImage(nodeVersion)
 
 	return dag.
@@ -127,12 +133,14 @@ func (m *DaggerModuleCiCd) CiNodejsPublishImage(
 		Publish(ctx, imgPath)
 }
 
-// Deploy service infra.
+// Deploy shared service infra.
 func (m *DaggerModuleCiCd) CiServiceInfra(
 	ctx context.Context,
 	bucketName string,
 	appName string,
 	env string,
+	// +optional
+	// +default="./terraform-svc-shared-infra"
 	src *dagger.Directory,
 ) (string, error) {
 	s3KeyBackend := fmt.Sprintf("-backend-config=key=services/shared/%s", appName)
@@ -142,8 +150,8 @@ func (m *DaggerModuleCiCd) CiServiceInfra(
 		Container().
 		WithEnvVariable("TF_VAR_service_name", appName).
 		From(utils.TF_IMG).
-		WithMountedDirectory(utils.MNT_PREFIX, src).
-		WithWorkdir(utils.MNT_PREFIX).
+		WithMountedDirectory(utils.WORK_DIR, src).
+		WithWorkdir(utils.WORK_DIR).
 		WithExec([]string{"init", tfInitConfig, s3KeyBackend}).
 		WithExec([]string{"workspace", "select", "-or-create", env}).
 		WithExec([]string{"fmt", "-check"}).
