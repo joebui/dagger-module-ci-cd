@@ -126,3 +126,29 @@ func (m *DaggerModuleCiCd) CiNodejsPublishImage(
 		DockerBuild(buildOps).
 		Publish(ctx, imgPath)
 }
+
+// Deploy service infra.
+func (m *DaggerModuleCiCd) CiServiceInfra(
+	ctx context.Context,
+	bucketName string,
+	appName string,
+	env string,
+) (string, error) {
+	src := dag.Directory().Directory("terraform-svc-shared-infra")
+	s3KeyBackend := fmt.Sprintf("-backend-config=key=services/shared/%s", appName)
+	tfInitConfig := fmt.Sprintf("-backend-config=bucket=%s", bucketName)
+
+	return dag.
+		Container().
+		WithEnvVariable("TF_VAR_service_name", appName).
+		From(utils.TF_IMG).
+		WithMountedDirectory(utils.WORK_DIR, src).
+		WithWorkdir(utils.WORK_DIR).
+		WithExec([]string{"init", tfInitConfig, s3KeyBackend}).
+		WithExec([]string{"workspace", "select", "-or-create", env}).
+		WithExec([]string{"fmt", "-check"}).
+		WithExec([]string{"validate"}).
+		WithExec([]string{"plan", "-out", "tfplan"}).
+		WithExec([]string{"apply", "tfplan"}).
+		Stdout(ctx)
+}
