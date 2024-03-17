@@ -74,6 +74,5 @@ func (m *DaggerModuleCiCd) CiNextjsBuild(ctx context.Context,
 		WithExec([]string{"npm", "install", "-g", "dotenv-cli"}).
 		WithExec([]string{"yarn", "install", "--frozen-lockfile"}).
 		WithExec([]string{"dotenv", "yarn", "build"}).
-		WithExec([]string{"sh", "-c", "mkdir -p tmp && cp -r .next tmp/ && cp -r public tmp/"}).
-		Directory("tmp")
+		Directory("./.next")
 }
