@@ -62,7 +62,7 @@ func (m *DaggerModuleCiCd) CiNextjsBuild(ctx context.Context,
 	// +optional
 	// +default="18"
 	nodeVersion string,
-) *dagger.Directory {
+) *DaggerModuleCiCd {
 	nodejsImage := utils.GetNodejsImage(nodeVersion)
 
 	container := dag.
@@ -75,5 +75,14 @@ func (m *DaggerModuleCiCd) CiNextjsBuild(ctx context.Context,
 		WithExec([]string{"yarn", "install", "--frozen-lockfile"}).
 		WithExec([]string{"dotenv", "yarn", "build"})
 
-	return container.Directory("./.next").Directory("./public")
+	m.container = container
+	return m
+}
+
+// Get build artifactory directory for export.
+func (m *DaggerModuleCiCd) BuildArtifactDir() []*dagger.Directory {
+	var a []*dagger.Directory
+	a[0] = m.container.Directory(".next")
+	a[1] = m.container.Directory("build")
+	return a
 }
