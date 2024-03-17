@@ -34,19 +34,19 @@ func terraformBase(
 }
 
 // Run terraform apply to deploy and manage AWS resources.
-func (m *DaggerModuleCiCd) CdTerraformDeploy(
+func (m *DaggerModuleCiCd) CdTerraformApply(
 	ctx context.Context,
-	s3BucketName string,
+	bucketName string,
 	appName string,
 	buildVersion string,
 	tenant string,
 	src *dagger.Directory,
+	sshHostDir *dagger.Directory,
 	// +optional
 	// +default="us-west-2"
 	awsRegion string,
 ) (string, error) {
-	sshHostDir := dag.Directory().Directory("/home/ec2-user/.ssh")
-	tfInitConfig := utils.TfBucketConfig(s3BucketName)
+	tfInitConfig := utils.TfBucketConfig(bucketName)
 	tfPlanConfig := utils.TfVarFileConfig(tenant)
 
 	return terraformBase(
@@ -60,17 +60,17 @@ func (m *DaggerModuleCiCd) CdTerraformDeploy(
 // Run terraform destroy to clean service's AWS resources.
 func (m *DaggerModuleCiCd) CdTerraformDestroy(
 	ctx context.Context,
-	s3BucketName string,
+	bucketName string,
 	appName string,
 	buildVersion string,
 	tenant string,
 	src *dagger.Directory,
+	sshHostDir *dagger.Directory,
 	// +optional
 	// +default="us-west-2"
 	awsRegion string,
 ) (string, error) {
-	sshHostDir := dag.Directory().Directory("/home/ec2-user/.ssh")
-	tfInitConfig := utils.TfBucketConfig(s3BucketName)
+	tfInitConfig := utils.TfBucketConfig(bucketName)
 	tfPlanConfig := utils.TfVarFileConfig(tenant)
 
 	return terraformBase(
