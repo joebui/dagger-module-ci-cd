@@ -5,9 +5,7 @@ import (
 	"dagger/dagger-module-ci-cd/utils"
 )
 
-type DaggerModuleCiCd struct {
-	container *dagger.Container
-}
+type DaggerModuleCiCd struct{}
 
 func terraformBase(
 	sshHostDir *dagger.Directory,
