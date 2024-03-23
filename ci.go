@@ -76,3 +76,25 @@ func (m *DaggerModuleCiCd) CiNextjsBuild(ctx context.Context,
 		WithExec([]string{"dotenv", "yarn", "build"}).
 		Directory("./.next")
 }
+
+// Build SPA app.
+func (m *DaggerModuleCiCd) CiSpaBuild(ctx context.Context,
+	githubToken string,
+	src *dagger.Directory,
+	// +optional
+	// +default="16"
+	nodeVersion string,
+) *dagger.Directory {
+	nodejsImage := utils.GetNodejsImage(nodeVersion)
+
+	return dag.
+		Container().
+		WithEnvVariable("GITHUB_TOKEN", githubToken).
+		From(nodejsImage).
+		WithMountedDirectory(utils.WORK_DIR, src).
+		WithWorkdir(utils.WORK_DIR).
+		WithExec([]string{"npm", "install", "-g", "dotenv-cli"}).
+		WithExec([]string{"dotenv", "yarn", "install", "--frozen-lockfile"}).
+		WithExec([]string{"dotenv", "yarn", "build"}).
+		Directory("./webapp-static")
+}
